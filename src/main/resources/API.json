@@ -1,0 +1,895 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "员工商城API",
+    "description": "员工商城系统接口文档",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "本地开发服务器"
+    }
+  ],
+  "paths": {
+    "/api/products": {
+      "get": {
+        "summary": "获取所有商品",
+        "tags": ["商品管理"],
+        "description": "获取所有商品列表，可以按照分类进行过滤",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "query",
+            "description": "分类ID，用于过滤商品",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取商品列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products/featured": {
+      "get": {
+        "summary": "获取精选商品",
+        "tags": ["商品管理"],
+        "description": "获取所有被标记为精选的商品",
+        "responses": {
+          "200": {
+            "description": "成功获取精选商品列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products/{id}": {
+      "get": {
+        "summary": "获取单个商品详情",
+        "tags": ["商品管理"],
+        "description": "根据ID获取商品详细信息",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取商品详情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "商品不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "商品不存在"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "summary": "获取所有分类",
+        "tags": ["分类管理"],
+        "description": "获取所有商品分类列表",
+        "responses": {
+          "200": {
+            "description": "成功获取分类列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cart": {
+      "get": {
+        "summary": "获取购物车",
+        "tags": ["购物车"],
+        "description": "获取当前用户的购物车内容",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Token，格式: Bearer {token}",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取购物车内容",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CartItem"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "未授权访问"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "添加商品到购物车",
+        "tags": ["购物车"],
+        "description": "将商品添加到当前用户的购物车",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Token，格式: Bearer {token}",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "要添加到购物车的商品信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId", "quantity"],
+                "properties": {
+                  "productId": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功添加商品到购物车",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "商品已添加到购物车"
+                    },
+                    "cartItem": {
+                      "$ref": "#/components/schemas/CartItem"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "请求参数无效"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "未授权访问"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "商品不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "商品不存在"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新购物车中的商品数量",
+        "tags": ["购物车"],
+        "description": "更新购物车中特定商品的数量",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Token，格式: Bearer {token}",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "要更新的购物车项目信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["cartItemId", "quantity"],
+                "properties": {
+                  "cartItemId": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "example": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功更新购物车商品数量",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "购物车更新成功"
+                    },
+                    "cartItem": {
+                      "$ref": "#/components/schemas/CartItem"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "请求参数无效"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "未授权访问"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "购物车项目不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "购物车项目不存在"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除购物车中的商品",
+        "tags": ["购物车"],
+        "description": "从购物车中删除特定商品",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Token，格式: Bearer {token}",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cartItemId",
+            "in": "query",
+            "description": "要删除的购物车项目ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功从购物车中删除商品",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "商品已从购物车中删除"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "未授权访问"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "购物车项目不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "购物车项目不存在"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/points/products": {
+      "get": {
+        "summary": "获取积分兑换产品",
+        "tags": ["积分兑换"],
+        "description": "获取所有可用于积分兑换的产品列表",
+        "responses": {
+          "200": {
+            "description": "成功获取积分产品列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PointsProduct"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/points/user": {
+      "get": {
+        "summary": "获取用户积分",
+        "tags": ["积分兑换"],
+        "description": "获取当前用户的积分余额",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Token，格式: Bearer {token}",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取用户积分",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "points": {
+                      "type": "integer",
+                      "example": 5000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "未授权访问"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/points/redeem": {
+      "post": {
+        "summary": "兑换积分商品",
+        "tags": ["积分兑换"],
+        "description": "使用积分兑换商品",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Token，格式: Bearer {token}",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "要兑换的商品信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["productId"],
+                "properties": {
+                  "productId": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功兑换商品",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "兑换成功"
+                    },
+                    "remainingPoints": {
+                      "type": "integer",
+                      "example": 4000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "积分不足或其他错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "兑换失败，积分不足或商品不存在"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "未授权访问"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "summary": "获取系统统计数据",
+        "tags": ["系统管理"],
+        "description": "获取系统的各项统计数据",
+        "responses": {
+          "200": {
+            "description": "成功获取统计数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categoriesCount": {
+                      "type": "integer",
+                      "example": 10
+                    },
+                    "productsCount": {
+                      "type": "integer",
+                      "example": 50
+                    },
+                    "featuredProductsCount": {
+                      "type": "integer",
+                      "example": 15
+                    },
+                    "pointsProductsCount": {
+                      "type": "integer",
+                      "example": 20
+                    },
+                    "usersCount": {
+                      "type": "integer",
+                      "example": 10
+                    },
+                    "cartItemsCount": {
+                      "type": "integer",
+                      "example": 12
+                    },
+                    "timestamp": {
+                      "type": "integer",
+                      "example": 1635724800000
+                    },
+                    "serverStatus": {
+                      "type": "string",
+                      "example": "运行中"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/generate-data": {
+      "post": {
+        "summary": "生成随机测试数据",
+        "tags": ["系统管理"],
+        "description": "生成随机测试数据用于开发和测试",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Token，格式: Bearer admin-token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "productCount",
+            "in": "query",
+            "description": "要生成的商品数量",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "categoryCount",
+            "in": "query",
+            "description": "要生成的分类数量",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "pointsProductCount",
+            "in": "query",
+            "description": "要生成的积分商品数量",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功生成测试数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categoriesGenerated": {
+                      "type": "integer",
+                      "example": 20
+                    },
+                    "productsGenerated": {
+                      "type": "integer",
+                      "example": 50
+                    },
+                    "pointsProductsGenerated": {
+                      "type": "integer",
+                      "example": 30
+                    },
+                    "usersGenerated": {
+                      "type": "integer",
+                      "example": 10
+                    },
+                    "cartItemsGenerated": {
+                      "type": "integer",
+                      "example": 20
+                    },
+                    "timestamp": {
+                      "type": "integer",
+                      "example": 1635724800000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "权限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "需要管理员权限"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "无线蓝牙耳机"
+          },
+          "price": {
+            "type": "number",
+            "format": "decimal",
+            "example": 199.00
+          },
+          "points": {
+            "type": "integer",
+            "example": 500
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://via.placeholder.com/200x150?text=Headphones"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "featured": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 2
+          },
+          "name": {
+            "type": "string",
+            "example": "电子产品"
+          }
+        }
+      },
+      "CartItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "quantity": {
+            "type": "integer",
+            "example": 1
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-03-01T12:30:00"
+          }
+        }
+      },
+      "PointsProduct": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "电影票兑换券"
+          },
+          "pointsRequired": {
+            "type": "integer",
+            "example": 1000
+          },
+          "note": {
+            "type": "string",
+            "example": "限量100张"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://via.placeholder.com/200x150?text=MovieTicket"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          }
+        }
+      }
+    }
+  }
+}
