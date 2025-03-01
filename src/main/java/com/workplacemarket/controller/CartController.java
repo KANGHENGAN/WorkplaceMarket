@@ -21,6 +21,7 @@ public class CartController {
     public ResponseEntity<List<CartItem>> getUserCart(
             @RequestHeader("Authorization") String authHeader) {
         String userId = extractUserId(authHeader);
+        System.out.println("666");
         return ResponseEntity.ok(cartService.getUserCart(userId));
     }
 
